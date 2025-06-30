@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PickleballAI Coach Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            margin: 0.25rem 0;
+        }
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .main-content {
+            padding: 2rem;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border: none;
+            border-radius: 10px;
+        }
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+        .stats-card i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .stats-card.requests i { color: #28a745; }
+        .stats-card.pending i { color: #ffc107; }
+        .stats-card.completed i { color: #17a2b8; }
+        .stats-card.earnings i { color: #dc3545; }
+        .request-card {
+            border-left: 4px solid #28a745;
+            margin-bottom: 1rem;
+        }
+        .request-card.pending {
+            border-left-color: #ffc107;
+        }
+        .request-card.accepted {
+            border-left-color: #17a2b8;
+        }
+        .request-card.completed {
+            border-left-color: #28a745;
+        }
+        .request-card.declined {
+            border-left-color: #dc3545;
+        }
+        .video-card {
+            border-left: 4px solid #28a745;
+            margin-bottom: 15px;
+        }
+        .permission-badge {
+            font-size: 0.7em;
+            margin: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar p-3">
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-tie fa-2x mb-2"></i>
+                    <h5>Coach Dashboard</h5>
+                    <small>{{ coach.name }}</small>
+                </div>
+                
+                <nav class="nav flex-column">
+                    <a class="nav-link active" href="#" onclick="showSection('overview')">
+                        <i class="fas fa-tachometer-alt"></i> Overview
+                    </a>
+                    <a class="nav-link" href="#" onclick="showSection('requests')">
+                        <i class="fas fa-clipboard-list"></i> Requests
+                    </a>
+                    <a class="nav-link" href="#" onclick="showSection('videos')">
+                        <i class="fas fa-video"></i> Videos
+                    </a>
+                    <a class="nav-link" href="#" onclick="showSection('earnings')">
+                        <i class="fas fa-dollar-sign"></i> Earnings
+                    </a>
+                    <a class="nav-link" href="#" onclick="showSection('profile')">
+                        <i class="fas fa-user-cog"></i> Profile
+                    </a>
+                </nav>
+                
+                <div class="mt-auto pt-3">
+                    <a href="/logout" class="btn btn-outline-light btn-sm w-100">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <!-- Overview Section -->
+                <div id="overview-section">
+                    <h2 class="mb-4">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard Overview
+                    </h2>
+                    
+                    <!-- Calibration Alert -->
+                    {% if videos %}
+                        {% set needs_calibration = false %}
+                        {% for video in videos %}
+                            {% if video.calibration_status and video.calibration_status.status != 'completed' %}
+                                {% set needs_calibration = true %}
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if needs_calibration %}
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                                <div>
+                                    <h5 class="alert-heading">Calibration Required!</h5>
+                                    <p class="mb-0">You have videos that need calibration before annotation can begin. Calibration is mandatory for accurate analysis.</p>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <!-- Stats Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="stats-card requests">
+                                <i class="fas fa-clipboard-list"></i>
+                                <h3>{{ stats.total_requests }}</h3>
+                                <p class="text-muted">Total Requests</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card pending">
+                                <i class="fas fa-clock"></i>
+                                <h3>{{ stats.pending_requests }}</h3>
+                                <p class="text-muted">Pending</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card completed">
+                                <i class="fas fa-check-circle"></i>
+                                <h3>{{ stats.completed_requests }}</h3>
+                                <p class="text-muted">Completed</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card earnings">
+                                <i class="fas fa-dollar-sign"></i>
+                                <h3>${{ "%.2f"|format(stats.total_earnings) }}</h3>
+                                <p class="text-muted">Total Earnings</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Calibration Priority Section -->
+                    {% if videos %}
+                    <div class="card mb-4">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0"><i class="fas fa-cogs"></i> Calibration Required</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-3">The following videos require calibration before annotation can begin:</p>
+                            {% for video in videos %}
+                                {% if video.calibration_status and video.calibration_status.status != 'completed' %}
+                                <div class="d-flex justify-content-between align-items-center p-3 border rounded mb-2">
+                                    <div>
+                                        <h6 class="mb-1">{{ video.filename }}</h6>
+                                        <small class="text-muted">Student: {{ video.student_email }}</small>
+                                    </div>
+                                    <a href="/video/{{ video.id }}#calibration" class="btn btn-warning">
+                                        <i class="fas fa-cogs"></i> Start Calibration
+                                    </a>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Recent Requests -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-clock"></i> Recent Requests</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if requests %}
+                                {% for request in requests[:5] %}
+                                <div class="request-card card p-3 {{ request.status }}">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6>{{ request.student_name }}</h6>
+                                            <p class="text-muted mb-1">{{ request.video_filename }}</p>
+                                            <small class="text-muted">{{ request.created_at[:10] }}</small>
+                                            {% if request.message %}
+                                            <p class="mt-2 mb-0"><strong>Message:</strong> {{ request.message }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-{{ 'warning' if request.status == 'pending' else 'success' if request.status == 'accepted' else 'info' if request.status == 'completed' else 'danger' }}">
+                                                {{ request.status.title() }}
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">${{ "%.2f"|format(request.estimated_cost) }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted">No recent requests</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Requests Section -->
+                <div id="requests-section" style="display: none;">
+                    <h2 class="mb-4"><i class="fas fa-clipboard-list"></i> Annotation Requests</h2>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">All Requests</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="requests-list">
+                                {% if requests %}
+                                    {% for request in requests %}
+                                    <div class="request-card card p-3 {{ request.status }} mb-3">
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <h6>{{ request.student_name }} <small class="text-muted">({{ request.student_email }})</small></h6>
+                                                <p class="text-muted mb-1"><strong>Video:</strong> {{ request.video_filename }}</p>
+                                                <p class="text-muted mb-1"><strong>Requested:</strong> {{ request.created_at[:10] }}</p>
+                                                {% if request.message %}
+                                                <p class="mt-2 mb-0"><strong>Message:</strong> {{ request.message }}</p>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-md-4 text-end">
+                                                <div class="mb-2">
+                                                    <span class="badge bg-{{ 'warning' if request.status == 'pending' else 'success' if request.status == 'accepted' else 'info' if request.status == 'completed' else 'danger' }}">
+                                                        {{ request.status.title() }}
+                                                    </span>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <strong>${{ "%.2f"|format(request.estimated_cost) }}</strong>
+                                                </div>
+                                                {% if request.status == 'pending' %}
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-success" onclick="respondToRequest('{{ request.id }}', 'accept')">
+                                                        <i class="fas fa-check"></i> Accept
+                                                    </button>
+                                                    <button class="btn btn-danger" onclick="respondToRequest('{{ request.id }}', 'decline')">
+                                                        <i class="fas fa-times"></i> Decline
+                                                    </button>
+                                                </div>
+                                                {% elif request.status == 'accepted' %}
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="/video/{{ request.video_id }}" class="btn btn-primary">
+                                                        <i class="fas fa-video"></i> Annotate Video
+                                                    </a>
+                                                    <button class="btn btn-info" onclick="respondToRequest('{{ request.id }}', 'complete')">
+                                                        <i class="fas fa-check-double"></i> Complete
+                                                    </button>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted">No requests found</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Videos Section -->
+                <div id="videos-section" style="display: none;">
+                    <h2 class="mb-4"><i class="fas fa-video"></i> My Videos</h2>
+                    
+                    <!-- Calibration Priority -->
+                    {% if videos %}
+                        {% set needs_calibration_videos = [] %}
+                        {% set calibrated_videos = [] %}
+                        {% for video in videos %}
+                            {% if video.calibration_status and video.calibration_status.status != 'completed' %}
+                                {% set _ = needs_calibration_videos.append(video) %}
+                            {% else %}
+                                {% set _ = calibrated_videos.append(video) %}
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if needs_calibration_videos %}
+                        <div class="card mb-4">
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Videos Requiring Calibration ({{ needs_calibration_videos|length }})</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted mb-3">These videos must be calibrated before annotation can begin:</p>
+                                <div class="row">
+                                    {% for video in needs_calibration_videos %}
+                                    <div class="col-lg-4 col-md-6 mb-4">
+                                        <div class="card video-card border-warning">
+                                            <div class="card-header bg-warning text-dark">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <h6 class="card-title mb-0">{{ video.filename }}</h6>
+                                                    <span class="badge bg-danger">Calibration Required</span>
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-2">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-user"></i> {{ video.student_email }}
+                                                    </small>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <span class="badge bg-warning">
+                                                        <i class="fas fa-cogs"></i> Calibration Pending
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="card-footer">
+                                                <a href="/video/{{ video.id }}#calibration" class="btn btn-warning w-100">
+                                                    <i class="fas fa-cogs"></i> Start Calibration
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if calibrated_videos %}
+                        <div class="card">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0"><i class="fas fa-check-circle"></i> Calibrated Videos ({{ calibrated_videos|length }})</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for video in calibrated_videos %}
+                                    <div class="col-lg-4 col-md-6 mb-4">
+                                        <div class="card video-card">
+                                            <div class="card-header">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <h6 class="card-title mb-0">{{ video.filename }}</h6>
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                            <i class="fas fa-ellipsis-v"></i>
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+                                                            <li><a class="dropdown-item" href="/video/{{ video.id }}">
+                                                                <i class="fas fa-eye"></i> View Details
+                                                            </a></li>
+                                                            {% if 'edit' in video.user_permissions %}
+                                                            <li><a class="dropdown-item" href="/video/{{ video.id }}#annotations">
+                                                                <i class="fas fa-sticky-note"></i> Add Annotation
+                                                            </a></li>
+                                                            <li><a class="dropdown-item" href="#" onclick="runAnalysis('{{ video.id }}')">
+                                                                <i class="fas fa-play"></i> Run Analysis
+                                                            </a></li>
+                                                            {% endif %}
+                                                            <li><a class="dropdown-item" href="#" onclick="exportVideo('{{ video.id }}')">
+                                                                <i class="fas fa-download"></i> Export Data
+                                                            </a></li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-2">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-user"></i> {{ video.student_email }}
+                                                    </small>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check"></i> Calibrated
+                                                    </span>
+                                                    <span class="badge bg-{{ 'success' if video.status == 'uploaded' else 'warning' }}">
+                                                        {{ video.status }}
+                                                    </span>
+                                                </div>
+                                                {% if video.annotations %}
+                                                <div class="mb-2">
+                                                    <span class="badge bg-info">
+                                                        <i class="fas fa-sticky-note"></i> {{ video.annotations|length }} annotations
+                                                    </span>
+                                                </div>
+                                                {% endif %}
+                                                {% if video.last_annotated_at %}
+                                                <div class="mb-2">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-clock"></i> Last annotated: {{ video.last_annotated_at[:10] }}
+                                                    </small>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="card-footer">
+                                                <a href="/video/{{ video.id }}" class="btn btn-primary btn-sm w-100">
+                                                    <i class="fas fa-eye"></i> View Video
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-video fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">No Videos Available</h4>
+                            <p class="text-muted">You don't have access to any videos yet. Students will need to submit annotation requests to you first.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Earnings Section -->
+                <div id="earnings-section" style="display: none;">
+                    <h2 class="mb-4"><i class="fas fa-dollar-sign"></i> Earnings & Analytics</h2>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Earnings Summary</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <h4>${{ "%.2f"|format(stats.total_earnings) }}</h4>
+                                            <p class="text-muted">Total Earnings</p>
+                                        </div>
+                                        <div class="col-6">
+                                            <h4>{{ stats.completed_requests }}</h4>
+                                            <p class="text-muted">Completed Sessions</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Performance</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <h4>{{ stats.accepted_requests }}</h4>
+                                            <p class="text-muted">Accepted Requests</p>
+                                        </div>
+                                        <div class="col-6">
+                                            <h4>${{ "%.2f"|format(coach.hourly_rate) }}</h4>
+                                            <p class="text-muted">Hourly Rate</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Profile Section -->
+                <div id="profile-section" style="display: none;">
+                    <h2 class="mb-4"><i class="fas fa-user-cog"></i> Profile Settings</h2>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Coach Profile</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Personal Information</h6>
+                                    <p><strong>Name:</strong> {{ coach.name }}</p>
+                                    <p><strong>Email:</strong> {{ coach.email }}</p>
+                                    <p><strong>Specialization:</strong> {{ coach.specialization }}</p>
+                                    <p><strong>Hourly Rate:</strong> ${{ "%.2f"|format(coach.hourly_rate) }}</p>
+                                    <p><strong>Status:</strong> 
+                                        <span class="badge bg-{{ 'success' if coach.status == 'active' else 'danger' }}">
+                                            {{ coach.status.title() }}
+                                        </span>
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Account Statistics</h6>
+                                    <p><strong>Member Since:</strong> {{ coach.created_at[:10] }}</p>
+                                    <p><strong>Total Sessions:</strong> {{ coach.total_sessions }}</p>
+                                    <p><strong>Total Earnings:</strong> ${{ "%.2f"|format(coach.total_earnings) }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Response Modal -->
+    <div class="modal fade" id="responseModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Respond to Request</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="responseForm">
+                        <input type="hidden" id="requestId" name="requestId">
+                        <input type="hidden" id="actionType" name="actionType">
+                        
+                        <div class="mb-3">
+                            <label for="responseMessage" class="form-label">Response Message (Optional)</label>
+                            <textarea class="form-control" id="responseMessage" name="responseMessage" rows="3" 
+                                      placeholder="Add a message to the student..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitResponse()">Submit Response</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Navigation
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('[id$="-section"]').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // Show selected section
+            document.getElementById(section + '-section').style.display = 'block';
+            
+            // Update navigation
+            document.querySelectorAll('.nav-link').forEach(el => {
+                el.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+        
+        // Request response handling
+        function respondToRequest(requestId, action) {
+            document.getElementById('requestId').value = requestId;
+            document.getElementById('actionType').value = action;
+            
+            const modal = new bootstrap.Modal(document.getElementById('responseModal'));
+            modal.show();
+        }
+        
+        async function submitResponse() {
+            const requestId = document.getElementById('requestId').value;
+            const action = document.getElementById('actionType').value;
+            const message = document.getElementById('responseMessage').value;
+            
+            try {
+                const response = await fetch(`/api/requests/${requestId}/${action}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        response: message
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('responseModal')).hide();
+                    location.reload(); // Refresh to show updated status
+                } else {
+                    alert('Error: ' + result.error);
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error submitting response');
+            }
+        }
+    </script>
+</body>
+</html> 

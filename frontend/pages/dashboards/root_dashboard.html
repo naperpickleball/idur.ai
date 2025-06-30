@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Root Dashboard - PickleballAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .main-content {
+            background-color: #f8f9fa;
+        }
+        .metric-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+        .performance-indicator {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+        .performance-excellent { background: #28a745; }
+        .performance-good { background: #ffc107; }
+        .performance-needs-improvement { background: #dc3545; }
+        .frame-analysis-table {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .suggestion-card {
+            border-left: 4px solid #007bff;
+            margin-bottom: 10px;
+        }
+        .suggestion-high { border-left-color: #dc3545; }
+        .suggestion-medium { border-left-color: #ffc107; }
+        .suggestion-low { border-left-color: #28a745; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar p-3">
+                <div class="text-white text-center mb-4">
+                    <h4><i class="fas fa-shield-alt"></i> Root Dashboard</h4>
+                    <p class="small">AI Model Monitoring & Fine-tuning</p>
+                </div>
+                
+                <nav class="nav flex-column">
+                    <a class="nav-link text-white" href="#overview" onclick="showSection('overview')">
+                        <i class="fas fa-chart-line"></i> Overview
+                    </a>
+                    <a class="nav-link text-white" href="#calibration-usage" onclick="showSection('calibration-usage')">
+                        <i class="fas fa-cogs"></i> Calibration Usage
+                    </a>
+                    <a class="nav-link text-white" href="#yolo-performance" onclick="showSection('yolo-performance')">
+                        <i class="fas fa-brain"></i> YOLO Performance
+                    </a>
+                    <a class="nav-link text-white" href="#frame-analysis" onclick="showSection('frame-analysis')">
+                        <i class="fas fa-film"></i> Frame Analysis
+                    </a>
+                    <a class="nav-link text-white" href="#fine-tuning" onclick="showSection('fine-tuning')">
+                        <i class="fas fa-tools"></i> Fine-tuning
+                    </a>
+                </nav>
+                
+                <div class="mt-auto text-white text-center">
+                    <small>Last updated: <span id="lastUpdated">Loading...</span></small>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content p-4">
+                <!-- Overview Section -->
+                <div id="overview" class="section">
+                    <h2><i class="fas fa-chart-line"></i> System Overview</h2>
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="metric-card p-3 text-center">
+                                <h3 id="totalCalibrations">-</h3>
+                                <p class="text-muted">Total Calibrations</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card p-3 text-center">
+                                <h3 id="avgConfidence">-</h3>
+                                <p class="text-muted">Avg Confidence</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card p-3 text-center">
+                                <h3 id="avgProcessingTime">-</h3>
+                                <p class="text-muted">Avg Processing Time</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card p-3 text-center">
+                                <div class="performance-indicator" id="performanceIndicator">
+                                    -
+                                </div>
+                                <p class="text-muted mt-2">Performance</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="metric-card p-3">
+                                <h5>Performance Trend</h5>
+                                <canvas id="performanceChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="metric-card p-3">
+                                <h5>Usage by Role</h5>
+                                <canvas id="usageChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Calibration Usage Section -->
+                <div id="calibration-usage" class="section" style="display: none;">
+                    <h2><i class="fas fa-cogs"></i> Calibration Usage</h2>
+                    <div class="metric-card p-3">
+                        <h5>Recent Calibrations</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Video ID</th>
+                                        <th>User</th>
+                                        <th>Role</th>
+                                        <th>Frames</th>
+                                        <th>Confidence</th>
+                                        <th>Processing Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="calibrationTable">
+                                    <!-- Data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- YOLO Performance Section -->
+                <div id="yolo-performance" class="section" style="display: none;">
+                    <h2><i class="fas fa-brain"></i> YOLO Model Performance</h2>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="metric-card p-3">
+                                <h5>Detection Accuracy</h5>
+                                <canvas id="accuracyChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="metric-card p-3">
+                                <h5>Confidence Distribution</h5>
+                                <canvas id="confidenceChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card p-3 mt-3">
+                        <h5>Performance Metrics</h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 id="avgDetectionAccuracy">-</h4>
+                                    <p class="text-muted">Avg Detection Accuracy</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 id="detectionRate">-</h4>
+                                    <p class="text-muted">Detection Rate</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 id="falsePositives">-</h4>
+                                    <p class="text-muted">False Positives</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 id="falseNegatives">-</h4>
+                                    <p class="text-muted">False Negatives</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Frame Analysis Section -->
+                <div id="frame-analysis" class="section" style="display: none;">
+                    <h2><i class="fas fa-film"></i> Frame-by-Frame Analysis</h2>
+                    <div class="mb-3">
+                        <label for="videoSelect" class="form-label">Select Video:</label>
+                        <select class="form-select" id="videoSelect" onchange="loadFrameAnalysis()">
+                            <option value="">Choose a video...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="metric-card p-3">
+                        <h5>Frame Analysis Details</h5>
+                        <div class="table-responsive frame-analysis-table">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Frame</th>
+                                        <th>Timestamp</th>
+                                        <th>Detections</th>
+                                        <th>Avg Confidence</th>
+                                        <th>Quality Score</th>
+                                        <th>Issues</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="frameAnalysisTable">
+                                    <!-- Data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fine-tuning Section -->
+                <div id="fine-tuning" class="section" style="display: none;">
+                    <h2><i class="fas fa-tools"></i> Model Fine-tuning Suggestions</h2>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="metric-card p-3">
+                                <h5 class="text-danger">High Priority</h5>
+                                <div id="highPrioritySuggestions">
+                                    <!-- High priority suggestions -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="metric-card p-3">
+                                <h5 class="text-warning">Medium Priority</h5>
+                                <div id="mediumPrioritySuggestions">
+                                    <!-- Medium priority suggestions -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="metric-card p-3">
+                                <h5 class="text-success">Low Priority</h5>
+                                <div id="lowPrioritySuggestions">
+                                    <!-- Low priority suggestions -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card p-3 mt-3">
+                        <h5>Implementation Roadmap</h5>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Suggestion</th>
+                                        <th>Priority</th>
+                                        <th>Difficulty</th>
+                                        <th>Estimated Impact</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="roadmapTable">
+                                    <!-- Roadmap will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentSection = 'overview';
+        
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadOverviewData();
+            loadCalibrationUsage();
+            loadYOLOPerformance();
+            loadFineTuningSuggestions();
+        });
+        
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show selected section
+            document.getElementById(sectionName).style.display = 'block';
+            currentSection = sectionName;
+        }
+        
+        async function loadOverviewData() {
+            try {
+                const response = await fetch('/api/root/monitoring');
+                const data = await response.json();
+                
+                if (data.summary) {
+                    document.getElementById('totalCalibrations').textContent = data.summary.total_calibrations;
+                    document.getElementById('avgConfidence').textContent = (data.summary.average_confidence * 100).toFixed(1) + '%';
+                    document.getElementById('avgProcessingTime').textContent = data.summary.average_processing_time.toFixed(1) + 's';
+                    
+                    // Set performance indicator
+                    const indicator = document.getElementById('performanceIndicator');
+                    const confidence = data.summary.average_confidence;
+                    if (confidence > 0.8) {
+                        indicator.className = 'performance-indicator performance-excellent';
+                        indicator.textContent = 'A+';
+                    } else if (confidence > 0.6) {
+                        indicator.className = 'performance-indicator performance-good';
+                        indicator.textContent = 'B';
+                    } else {
+                        indicator.className = 'performance-indicator performance-needs-improvement';
+                        indicator.textContent = 'C';
+                    }
+                }
+                
+                document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+                
+            } catch (error) {
+                console.error('Error loading overview data:', error);
+            }
+        }
+        
+        async function loadCalibrationUsage() {
+            try {
+                const response = await fetch('/api/root/calibration-usage');
+                const data = await response.json();
+                
+                // Populate calibration table
+                const tableBody = document.getElementById('calibrationTable');
+                tableBody.innerHTML = '';
+                
+                data.recent_calibrations.forEach(cal => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${new Date(cal.timestamp).toLocaleString()}</td>
+                        <td>${cal.video_id}</td>
+                        <td>${cal.user_id}</td>
+                        <td>${cal.user_role}</td>
+                        <td>${cal.frames_analyzed}</td>
+                        <td>${(cal.overall_confidence * 100).toFixed(1)}%</td>
+                        <td>${cal.processing_time_seconds.toFixed(1)}s</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error('Error loading calibration usage:', error);
+            }
+        }
+        
+        async function loadYOLOPerformance() {
+            try {
+                const response = await fetch('/api/root/yolo-performance');
+                const data = await response.json();
+                
+                // Update metrics
+                if (data.performance_summary) {
+                    document.getElementById('avgDetectionAccuracy').textContent = (data.performance_summary.average_confidence * 100).toFixed(1) + '%';
+                    document.getElementById('detectionRate').textContent = (data.performance_summary.detection_rate * 100).toFixed(1) + '%';
+                    document.getElementById('falsePositives').textContent = data.false_positives.length;
+                    document.getElementById('falseNegatives').textContent = data.false_negatives.length;
+                }
+                
+            } catch (error) {
+                console.error('Error loading YOLO performance:', error);
+            }
+        }
+        
+        async function loadFineTuningSuggestions() {
+            try {
+                const response = await fetch('/api/root/fine-tuning-suggestions');
+                const data = await response.json();
+                
+                // Populate suggestions by priority
+                populateSuggestions('highPrioritySuggestions', data.priority.high, 'high');
+                populateSuggestions('mediumPrioritySuggestions', data.priority.medium, 'medium');
+                populateSuggestions('lowPrioritySuggestions', data.priority.low, 'low');
+                
+                // Populate roadmap table
+                const roadmapTable = document.getElementById('roadmapTable');
+                roadmapTable.innerHTML = '';
+                
+                data.suggestions.forEach(suggestion => {
+                    const row = document.createElement('tr');
+                    const priority = getPriority(suggestion, data.priority);
+                    const difficulty = data.implementation_difficulty[suggestion] || 'medium';
+                    
+                    row.innerHTML = `
+                        <td>${suggestion}</td>
+                        <td><span class="badge bg-${getPriorityColor(priority)}">${priority}</span></td>
+                        <td><span class="badge bg-${getDifficultyColor(difficulty)}">${difficulty}</span></td>
+                        <td>${estimateImpact(priority, difficulty)}</td>
+                    `;
+                    roadmapTable.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error('Error loading fine-tuning suggestions:', error);
+            }
+        }
+        
+        function populateSuggestions(containerId, suggestions, priority) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            if (suggestions.length === 0) {
+                container.innerHTML = '<p class="text-muted">No suggestions</p>';
+                return;
+            }
+            
+            suggestions.forEach(suggestion => {
+                const card = document.createElement('div');
+                card.className = `suggestion-card suggestion-${priority} p-2`;
+                card.innerHTML = `<small>${suggestion}</small>`;
+                container.appendChild(card);
+            });
+        }
+        
+        function getPriority(suggestion, priorities) {
+            if (priorities.high.includes(suggestion)) return 'high';
+            if (priorities.medium.includes(suggestion)) return 'medium';
+            if (priorities.low.includes(suggestion)) return 'low';
+            return 'medium';
+        }
+        
+        function getPriorityColor(priority) {
+            switch (priority) {
+                case 'high': return 'danger';
+                case 'medium': return 'warning';
+                case 'low': return 'success';
+                default: return 'secondary';
+            }
+        }
+        
+        function getDifficultyColor(difficulty) {
+            switch (difficulty) {
+                case 'high': return 'danger';
+                case 'medium': return 'warning';
+                case 'low': return 'success';
+                default: return 'secondary';
+            }
+        }
+        
+        function estimateImpact(priority, difficulty) {
+            if (priority === 'high' && difficulty === 'low') return 'High';
+            if (priority === 'high' && difficulty === 'medium') return 'High';
+            if (priority === 'medium' && difficulty === 'low') return 'Medium';
+            return 'Low';
+        }
+        
+        async function loadFrameAnalysis() {
+            const videoId = document.getElementById('videoSelect').value;
+            if (!videoId) return;
+            
+            try {
+                const response = await fetch(`/api/root/frame-analysis/${videoId}`);
+                const data = await response.json();
+                
+                const tableBody = document.getElementById('frameAnalysisTable');
+                tableBody.innerHTML = '';
+                
+                data.frame_details.forEach(frame => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${frame.frame_id}</td>
+                        <td>${frame.timestamp.toFixed(3)}s</td>
+                        <td>${frame.yolo_detections.total_detections}</td>
+                        <td>${(frame.yolo_detections.average_confidence * 100).toFixed(1)}%</td>
+                        <td>${(frame.detection_quality.quality_score * 100).toFixed(1)}%</td>
+                        <td>${frame.detection_quality.issues.join(', ') || 'None'}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error('Error loading frame analysis:', error);
+            }
+        }
+        
+        // Auto-refresh data every 30 seconds
+        setInterval(() => {
+            if (currentSection === 'overview') loadOverviewData();
+            if (currentSection === 'calibration-usage') loadCalibrationUsage();
+            if (currentSection === 'yolo-performance') loadYOLOPerformance();
+            if (currentSection === 'fine-tuning') loadFineTuningSuggestions();
+        }, 30000);
+    </script>
+</body>
+</html> 

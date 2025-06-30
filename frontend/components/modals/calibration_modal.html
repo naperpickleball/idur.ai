@@ -1,0 +1,1190 @@
+<!-- AI Calibration Modal -->
+<div class="modal fade" id="calibrationModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-cogs"></i> AI Calibration Wizard
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Progress Bar -->
+                <div class="progress mb-3" style="height: 8px;">
+                    <div class="progress-bar" id="calibrationProgress" role="progressbar" style="width: 0%"></div>
+                </div>
+                
+                <!-- Step Indicators -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="step-indicator active" id="step1-indicator">
+                                <i class="fas fa-court"></i>
+                                <small>Video Analysis</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="step-indicator" id="step2-indicator">
+                                <i class="fas fa-users"></i>
+                                <small>Player & Equipment</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="step-indicator" id="step3-indicator">
+                                <i class="fas fa-people-group"></i>
+                                <small>Team Assignment</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="step-indicator" id="step4-indicator">
+                                <i class="fas fa-check-circle"></i>
+                                <small>Review & Save</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 1: Court Detection -->
+                <div class="calibration-step" id="step1">
+                    <h6><i class="fas fa-court"></i> Step 1: Video Analysis & Court Detection</h6>
+                    <p class="text-muted">AI has analyzed the video angle and detected court lines. Please verify and adjust.</p>
+                    
+                    <!-- AI Analysis Summary -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-info text-white">
+                                    <h6><i class="fas fa-video"></i> Video Analysis</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="videoAnalysisSummary">
+                                        <!-- Video analysis will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6><i class="fas fa-brain"></i> AI Confidence</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="aiConfidenceSummary">
+                                        <!-- AI confidence will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Game Understanding Section -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-success text-white">
+                                    <h6><i class="fas fa-gamepad"></i> Game Understanding Analysis</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div id="gameStateInfo">
+                                                <!-- Game state will be populated here -->
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div id="highLevelEvents">
+                                                <!-- High-level events will be populated here -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="court-canvas-container">
+                                <canvas id="courtCanvas" width="640" height="480" style="border: 1px solid #ccc; max-width: 100%;"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6>Detected Court Elements</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="kitchenLinesList">
+                                        <h6 class="text-primary">Kitchen Lines</h6>
+                                        <!-- Kitchen lines will be populated here -->
+                                    </div>
+                                    <div id="baselineLinesList" class="mt-3">
+                                        <h6 class="text-success">Baseline Lines</h6>
+                                        <!-- Baseline lines will be populated here -->
+                                    </div>
+                                    <div id="sidelineLinesList" class="mt-3">
+                                        <h6 class="text-info">Sideline Lines</h6>
+                                        <!-- Sideline lines will be populated here -->
+                                    </div>
+                                    <div id="centerLineInfo" class="mt-3">
+                                        <h6 class="text-warning">Center Line</h6>
+                                        <!-- Center line will be populated here -->
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary mt-2" onclick="addKitchenLine()">
+                                        <i class="fas fa-plus"></i> Add Kitchen Line
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Player Detection -->
+                <div class="calibration-step" id="step2" style="display: none;">
+                    <h6><i class="fas fa-users"></i> Step 2: Player & Equipment Detection</h6>
+                    <p class="text-muted">AI has detected players and equipment. Please verify and adjust.</p>
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="player-canvas-container">
+                                <canvas id="playerCanvas" width="640" height="480" style="border: 1px solid #ccc; max-width: 100%;"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6>Detected Elements</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="playersList">
+                                        <h6 class="text-primary">Players</h6>
+                                        <!-- Players will be populated here -->
+                                    </div>
+                                    <div id="equipmentList" class="mt-3">
+                                        <h6 class="text-success">Equipment</h6>
+                                        <!-- Equipment will be populated here -->
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary mt-2" onclick="addPlayer()">
+                                        <i class="fas fa-plus"></i> Add Player
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success mt-2" onclick="addEquipment()">
+                                        <i class="fas fa-plus"></i> Add Equipment
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Team Assignment -->
+                <div class="calibration-step" id="step3" style="display: none;">
+                    <h6><i class="fas fa-people-group"></i> Step 3: Team Assignment & Positions</h6>
+                    <p class="text-muted">Assign players to teams and verify positions based on video angle.</p>
+                    
+                    <!-- Video Angle Context -->
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Video Context:</strong> <span id="videoAngleContext">Loading...</span>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-primary text-white">
+                                    <h6><i class="fas fa-users"></i> Team 1 (Left Side)</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="team1Players" class="team-players">
+                                        <!-- Team 1 players will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-success text-white">
+                                    <h6><i class="fas fa-users"></i> Team 2 (Right Side)</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="team2Players" class="team-players">
+                                        <!-- Team 2 players will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-lightbulb"></i>
+                            <strong>AI Suggestion:</strong> <span id="aiTeamSuggestion">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Review & Save -->
+                <div class="calibration-step" id="step4" style="display: none;">
+                    <h6><i class="fas fa-check-circle"></i> Step 4: Review & Save</h6>
+                    <p class="text-muted">Review your calibration settings and save. AI will learn from your corrections.</p>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6>Calibration Summary</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="calibrationSummary">
+                                        <!-- Summary will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- AI Learning Feedback -->
+                            <div class="card mt-3">
+                                <div class="card-header bg-success text-white">
+                                    <h6><i class="fas fa-brain"></i> AI Learning</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="aiLearningInfo">
+                                        <!-- AI learning info will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6>Final Preview</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="final-canvas-container">
+                                        <canvas id="finalCanvas" width="640" height="480" style="border: 1px solid #ccc; max-width: 100%;"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="calibrationLoading" style="display: none;">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3">Analyzing video for calibration...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="prevStep" onclick="previousStep()" style="display: none;">
+                    <i class="fas fa-arrow-left"></i> Previous
+                </button>
+                <button type="button" class="btn btn-primary" id="nextStep" onclick="nextStep()">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+                <button type="button" class="btn btn-success" id="saveCalibration" onclick="saveCalibration()" style="display: none;">
+                    <i class="fas fa-save"></i> Save Calibration
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.step-indicator {
+    padding: 10px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.step-indicator.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.step-indicator.completed {
+    background: #28a745;
+    color: white;
+    border-color: #28a745;
+}
+
+.calibration-step {
+    min-height: 400px;
+}
+
+.court-canvas-container, .player-canvas-container, .final-canvas-container {
+    text-align: center;
+    margin: 10px 0;
+}
+
+.team-players {
+    min-height: 200px;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.player-item {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 8px;
+    margin: 5px 0;
+    cursor: move;
+}
+
+.player-item:hover {
+    background: #e9ecef;
+}
+
+.kitchen-line-item {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    padding: 8px;
+    margin: 5px 0;
+}
+
+.line-item {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 8px;
+    margin: 5px 0;
+}
+
+.event-item {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease;
+}
+
+.event-item:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.event-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+</style>
+
+<script>
+let currentStep = 1;
+let totalSteps = 4;
+let calibrationData = null;
+let canvasContexts = {};
+
+// Initialize calibration modal
+function initCalibrationModal(videoId) {
+    currentStep = 1;
+    updateProgress();
+    updateStepIndicators();
+    
+    // Show loading state
+    document.getElementById('calibrationLoading').style.display = 'block';
+    document.querySelectorAll('.calibration-step').forEach(step => step.style.display = 'none');
+    
+    // Load calibration data
+    fetch(`/api/videos/${videoId}/calibration`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                calibrationData = data.calibration_data;
+                document.getElementById('calibrationLoading').style.display = 'none';
+                showStep(1);
+                initializeCanvases();
+                populateStep1();
+            } else {
+                alert('Error loading calibration data: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading calibration data');
+        });
+}
+
+function updateProgress() {
+    const progress = (currentStep / totalSteps) * 100;
+    document.getElementById('calibrationProgress').style.width = progress + '%';
+}
+
+function updateStepIndicators() {
+    for (let i = 1; i <= totalSteps; i++) {
+        const indicator = document.getElementById(`step${i}-indicator`);
+        if (i < currentStep) {
+            indicator.className = 'step-indicator completed';
+        } else if (i === currentStep) {
+            indicator.className = 'step-indicator active';
+        } else {
+            indicator.className = 'step-indicator';
+        }
+    }
+}
+
+function showStep(step) {
+    document.querySelectorAll('.calibration-step').forEach(s => s.style.display = 'none');
+    document.getElementById(`step${step}`).style.display = 'block';
+    
+    // Update buttons
+    const prevBtn = document.getElementById('prevStep');
+    const nextBtn = document.getElementById('nextStep');
+    const saveBtn = document.getElementById('saveCalibration');
+    
+    prevBtn.style.display = step > 1 ? 'inline-block' : 'none';
+    nextBtn.style.display = step < totalSteps ? 'inline-block' : 'none';
+    saveBtn.style.display = step === totalSteps ? 'inline-block' : 'none';
+}
+
+function nextStep() {
+    if (currentStep < totalSteps) {
+        currentStep++;
+        updateProgress();
+        updateStepIndicators();
+        showStep(currentStep);
+        
+        // Populate step data
+        if (currentStep === 2) {
+            populateStep2();
+        } else if (currentStep === 3) {
+            populateStep3();
+        } else if (currentStep === 4) {
+            populateStep4();
+        }
+    }
+}
+
+function previousStep() {
+    if (currentStep > 1) {
+        currentStep--;
+        updateProgress();
+        updateStepIndicators();
+        showStep(currentStep);
+    }
+}
+
+function initializeCanvases() {
+    const canvases = ['courtCanvas', 'playerCanvas', 'finalCanvas'];
+    canvases.forEach(canvasId => {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+        canvasContexts[canvasId] = ctx;
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+}
+
+function populateStep1() {
+    // Populate video analysis summary
+    const videoAnalysisSummary = document.getElementById('videoAnalysisSummary');
+    if (calibrationData.video_analysis) {
+        const videoAngle = calibrationData.video_analysis.video_angle || {};
+        const courtPerspective = calibrationData.video_analysis.court_perspective || {};
+        
+        videoAnalysisSummary.innerHTML = `
+            <div class="mb-2">
+                <strong>Video Angle:</strong> ${videoAngle.type || 'Unknown'}
+                <br><small class="text-muted">${videoAngle.description || ''}</small>
+            </div>
+            <div class="mb-2">
+                <strong>Court Perspective:</strong> ${courtPerspective.orientation || 'Unknown'}
+                <br><small class="text-muted">${courtPerspective.description || ''}</small>
+            </div>
+            <div class="mb-2">
+                <strong>Recommended Focus:</strong> ${videoAngle.recommended_focus || 'Unknown'}
+            </div>
+            <div class="mb-2">
+                <strong>Coverage Ratio:</strong> ${((videoAngle.coverage_ratio || 0) * 100).toFixed(1)}%
+            </div>
+        `;
+    }
+    
+    // Populate AI confidence summary
+    const aiConfidenceSummary = document.getElementById('aiConfidenceSummary');
+    if (calibrationData.ai_confidence) {
+        const conf = calibrationData.ai_confidence;
+        aiConfidenceSummary.innerHTML = `
+            <div class="mb-2">
+                <strong>Overall Confidence:</strong> 
+                <span class="badge ${conf.overall_confidence > 0.7 ? 'bg-success' : conf.overall_confidence > 0.5 ? 'bg-warning' : 'bg-danger'}">
+                    ${(conf.overall_confidence * 100).toFixed(1)}%
+                </span>
+            </div>
+            <div class="mb-2">
+                <strong>Court Detection:</strong> ${(conf.court_detection * 100).toFixed(1)}%
+            </div>
+            <div class="mb-2">
+                <strong>Player Detection:</strong> ${(conf.player_detection * 100).toFixed(1)}%
+            </div>
+            <div class="mb-2">
+                <strong>Team Assignment:</strong> ${(conf.team_assignment * 100).toFixed(1)}%
+            </div>
+            <div class="mb-2">
+                <strong>Equipment Detection:</strong> ${(conf.equipment_detection * 100).toFixed(1)}%
+            </div>
+        `;
+    }
+    
+    // Populate kitchen lines
+    const kitchenLinesList = document.getElementById('kitchenLinesList');
+    kitchenLinesList.innerHTML = '<h6 class="text-primary">Kitchen Lines</h6>';
+    
+    if (calibrationData.court_detection && calibrationData.court_detection.kitchen_lines) {
+        calibrationData.court_detection.kitchen_lines.forEach((line, index) => {
+            const lineItem = document.createElement('div');
+            lineItem.className = 'kitchen-line-item';
+            lineItem.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Kitchen Line ${index + 1}</span>
+                    <div>
+                        <small class="text-muted">Conf: ${(line.confidence * 100).toFixed(1)}%</small>
+                        <button class="btn btn-sm btn-outline-danger ms-2" onclick="removeKitchenLine(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            kitchenLinesList.appendChild(lineItem);
+        });
+    }
+    
+    // Populate baseline lines
+    const baselineLinesList = document.getElementById('baselineLinesList');
+    baselineLinesList.innerHTML = '<h6 class="text-success">Baseline Lines</h6>';
+    
+    if (calibrationData.court_detection && calibrationData.court_detection.baseline_lines) {
+        calibrationData.court_detection.baseline_lines.forEach((line, index) => {
+            const lineItem = document.createElement('div');
+            lineItem.className = 'line-item';
+            lineItem.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Baseline ${index + 1}</span>
+                    <div>
+                        <small class="text-muted">Conf: ${(line.confidence * 100).toFixed(1)}%</small>
+                        <button class="btn btn-sm btn-outline-danger ms-2" onclick="removeBaselineLine(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            baselineLinesList.appendChild(lineItem);
+        });
+    }
+    
+    // Populate sideline lines
+    const sidelineLinesList = document.getElementById('sidelineLinesList');
+    sidelineLinesList.innerHTML = '<h6 class="text-info">Sideline Lines</h6>';
+    
+    if (calibrationData.court_detection && calibrationData.court_detection.sideline_lines) {
+        calibrationData.court_detection.sideline_lines.forEach((line, index) => {
+            const lineItem = document.createElement('div');
+            lineItem.className = 'line-item';
+            lineItem.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Sideline ${index + 1}</span>
+                    <div>
+                        <small class="text-muted">Conf: ${(line.confidence * 100).toFixed(1)}%</small>
+                        <button class="btn btn-sm btn-outline-danger ms-2" onclick="removeSidelineLine(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            sidelineLinesList.appendChild(lineItem);
+        });
+    }
+    
+    // Populate center line
+    const centerLineInfo = document.getElementById('centerLineInfo');
+    centerLineInfo.innerHTML = '<h6 class="text-warning">Center Line</h6>';
+    
+    if (calibrationData.court_detection && calibrationData.court_detection.center_line) {
+        const line = calibrationData.court_detection.center_line;
+        const lineItem = document.createElement('div');
+        lineItem.className = 'line-item';
+        lineItem.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Center Line</span>
+                <div>
+                    <small class="text-muted">Conf: ${(line.confidence * 100).toFixed(1)}%</small>
+                    <button class="btn btn-sm btn-outline-danger ms-2" onclick="removeCenterLine()">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        centerLineInfo.appendChild(lineItem);
+    }
+    
+    // Draw court lines on canvas
+    drawCourtLines();
+    
+    // Populate Game Understanding
+    populateGameUnderstanding();
+}
+
+function populateGameUnderstanding() {
+    // Populate game state info
+    const gameStateInfo = document.getElementById('gameStateInfo');
+    if (calibrationData.action_detection && calibrationData.action_detection.game_understanding) {
+        const gameUnderstanding = calibrationData.action_detection.game_understanding;
+        
+        gameStateInfo.innerHTML = `
+            <h6 class="text-primary">Game State Analysis</h6>
+            <div class="mb-2">
+                <strong>Current State:</strong> 
+                <span class="badge ${gameUnderstanding.game_state === 'rally_in_progress' ? 'bg-success' : 
+                                   gameUnderstanding.game_state === 'point_ended' ? 'bg-warning' : 'bg-secondary'}">
+                    ${gameUnderstanding.game_state.replace('_', ' ').toUpperCase()}
+                </span>
+            </div>
+            <div class="mb-2">
+                <strong>Rally Status:</strong> 
+                <span class="badge ${gameUnderstanding.current_rally.in_progress ? 'bg-success' : 'bg-secondary'}">
+                    ${gameUnderstanding.current_rally.in_progress ? 'In Progress' : 'Not Active'}
+                </span>
+            </div>
+            <div class="mb-2">
+                <strong>Rally Duration:</strong> ${gameUnderstanding.current_rally.duration.toFixed(1)}s
+            </div>
+            <div class="mb-2">
+                <strong>Players Involved:</strong> ${gameUnderstanding.current_rally.players_involved.join(', ') || 'None'}
+            </div>
+            <div class="mb-2">
+                <strong>Total Hits:</strong> ${gameUnderstanding.current_rally.hits.length}
+            </div>
+        `;
+        
+        // Add point status if available
+        if (gameUnderstanding.point_status.last_point_winner) {
+            gameStateInfo.innerHTML += `
+                <hr>
+                <h6 class="text-warning">Last Point</h6>
+                <div class="mb-2">
+                    <strong>Winner:</strong> ${gameUnderstanding.point_status.last_point_winner}
+                </div>
+                <div class="mb-2">
+                    <strong>Reason:</strong> ${gameUnderstanding.point_status.last_point_reason}
+                </div>
+                <div class="mb-2">
+                    <strong>Score:</strong> ${gameUnderstanding.point_status.score.player1} - ${gameUnderstanding.point_status.score.player2}
+                </div>
+            `;
+        }
+    } else {
+        gameStateInfo.innerHTML = `
+            <h6 class="text-primary">Game State Analysis</h6>
+            <div class="text-muted">No game understanding data available</div>
+        `;
+    }
+    
+    // Populate high-level events
+    const highLevelEvents = document.getElementById('highLevelEvents');
+    if (calibrationData.action_detection && calibrationData.action_detection.game_understanding && 
+        calibrationData.action_detection.game_understanding.high_level_events) {
+        
+        const events = calibrationData.action_detection.game_understanding.high_level_events;
+        
+        highLevelEvents.innerHTML = `
+            <h6 class="text-success">High-Level Events</h6>
+            <div class="event-list">
+                ${events.map(event => `
+                    <div class="event-item mb-2 p-2 border rounded">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong class="text-primary">${event.event}</strong>
+                                <br><small class="text-muted">${event.description}</small>
+                                ${event.formula ? `<br><small class="text-info"><i class="fas fa-calculator"></i> ${event.formula}</small>` : ''}
+                            </div>
+                            <small class="text-muted">${event.timestamp.toFixed(1)}s</small>
+                        </div>
+                        ${event.players ? `<small class="text-info">Players: ${event.players.join(', ')}</small>` : ''}
+                        ${event.score ? `<small class="text-warning">Score: ${event.score.player1} - ${event.score.player2}</small>` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    } else {
+        highLevelEvents.innerHTML = `
+            <h6 class="text-success">High-Level Events</h6>
+            <div class="text-muted">No high-level events detected</div>
+        `;
+    }
+}
+
+function populateStep2() {
+    // Populate players
+    const playersList = document.getElementById('playersList');
+    playersList.innerHTML = '<h6 class="text-primary">Players</h6>';
+    
+    if (calibrationData.player_detection && calibrationData.player_detection.players) {
+        calibrationData.player_detection.players.forEach((player, index) => {
+            const playerItem = document.createElement('div');
+            playerItem.className = 'player-item';
+            playerItem.draggable = true;
+            playerItem.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Player ${index + 1}</span>
+                    <div>
+                        <small class="text-muted">Conf: ${(player.confidence * 100).toFixed(1)}%</small>
+                        <button class="btn btn-sm btn-outline-danger ms-2" onclick="removePlayer(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <small class="text-muted">
+                    Position: ${player.position || 'Unknown'} | 
+                    Stance: ${player.stance || 'Unknown'} | 
+                    Activity: ${player.activity || 'Unknown'}
+                </small>
+            `;
+            playersList.appendChild(playerItem);
+        });
+    }
+    
+    // Populate equipment
+    const equipmentList = document.getElementById('equipmentList');
+    equipmentList.innerHTML = '<h6 class="text-success">Equipment</h6>';
+    
+    if (calibrationData.player_detection && calibrationData.player_detection.equipment) {
+        calibrationData.player_detection.equipment.forEach((item, index) => {
+            const equipmentItem = document.createElement('div');
+            equipmentItem.className = 'line-item';
+            equipmentItem.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>${item.type.charAt(0).toUpperCase() + item.type.slice(1)} ${index + 1}</span>
+                    <div>
+                        <small class="text-muted">Conf: ${(item.confidence * 100).toFixed(1)}%</small>
+                        <button class="btn btn-sm btn-outline-danger ms-2" onclick="removeEquipment(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            equipmentList.appendChild(equipmentItem);
+        });
+    }
+    
+    // Draw players on canvas
+    drawPlayers();
+}
+
+function populateStep3() {
+    // Populate video angle context
+    const videoAngleContext = document.getElementById('videoAngleContext');
+    if (calibrationData.video_analysis && calibrationData.video_analysis.video_angle) {
+        const videoAngle = calibrationData.video_analysis.video_angle;
+        videoAngleContext.textContent = `${videoAngle.type} - ${videoAngle.description}`;
+    }
+    
+    // Populate AI team suggestion
+    const aiTeamSuggestion = document.getElementById('aiTeamSuggestion');
+    if (calibrationData.video_analysis && calibrationData.video_analysis.video_angle) {
+        const videoAngle = calibrationData.video_analysis.video_angle;
+        aiTeamSuggestion.textContent = `Based on ${videoAngle.type} view, ${videoAngle.recommended_focus} should be analyzed.`;
+    }
+    
+    // Populate team assignments
+    populateTeamPlayers();
+}
+
+function populateStep4() {
+    // Create summary
+    const summary = document.getElementById('calibrationSummary');
+    const kitchenLines = calibrationData.court_detection?.kitchen_lines?.length || 0;
+    const baselineLines = calibrationData.court_detection?.baseline_lines?.length || 0;
+    const sidelineLines = calibrationData.court_detection?.sideline_lines?.length || 0;
+    const centerLine = calibrationData.court_detection?.center_line ? 1 : 0;
+    const players = calibrationData.player_detection?.players?.length || 0;
+    const equipment = calibrationData.player_detection?.equipment?.length || 0;
+    const overallConfidence = calibrationData.ai_confidence?.overall_confidence || 0;
+    
+    summary.innerHTML = `
+        <ul class="list-unstyled">
+            <li><i class="fas fa-check text-success"></i> Kitchen Lines: ${kitchenLines}</li>
+            <li><i class="fas fa-check text-success"></i> Baseline Lines: ${baselineLines}</li>
+            <li><i class="fas fa-check text-success"></i> Sideline Lines: ${sidelineLines}</li>
+            <li><i class="fas fa-check text-success"></i> Center Line: ${centerLine}</li>
+            <li><i class="fas fa-check text-success"></i> Players Detected: ${players}</li>
+            <li><i class="fas fa-check text-success"></i> Equipment Detected: ${equipment}</li>
+            <li><i class="fas fa-check text-success"></i> Teams Assigned: 2</li>
+            <li><i class="fas fa-check text-success"></i> AI Confidence: ${(overallConfidence * 100).toFixed(1)}%</li>
+        </ul>
+    `;
+    
+    // Populate AI learning info
+    const aiLearningInfo = document.getElementById('aiLearningInfo');
+    aiLearningInfo.innerHTML = `
+        <div class="mb-2">
+            <i class="fas fa-brain text-success"></i>
+            <strong>AI Learning Enabled:</strong> Your corrections will help improve future calibrations
+        </div>
+        <div class="mb-2">
+            <i class="fas fa-chart-line text-info"></i>
+            <strong>Learning Impact:</strong> Each correction teaches the AI to be more accurate
+        </div>
+        <div class="mb-2">
+            <i class="fas fa-save text-warning"></i>
+            <strong>Data Saved:</strong> Calibration data will be stored for model improvement
+        </div>
+    `;
+    
+    // Draw final preview
+    drawFinalPreview();
+}
+
+function drawCourtLines() {
+    const ctx = canvasContexts['courtCanvas'];
+    const canvas = document.getElementById('courtCanvas');
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw kitchen lines (yellow)
+    if (calibrationData.court_detection && calibrationData.court_detection.kitchen_lines) {
+        ctx.strokeStyle = '#ffc107';
+        ctx.lineWidth = 3;
+        
+        calibrationData.court_detection.kitchen_lines.forEach((line, index) => {
+            ctx.beginPath();
+            ctx.moveTo(line.x1, line.y1);
+            ctx.lineTo(line.x2, line.y2);
+            ctx.stroke();
+            
+            // Add label
+            ctx.fillStyle = '#ffc107';
+            ctx.font = '12px Arial';
+            ctx.fillText(`Kitchen ${index + 1}`, line.x1, line.y1 - 5);
+        });
+    }
+    
+    // Draw baseline lines (green)
+    if (calibrationData.court_detection && calibrationData.court_detection.baseline_lines) {
+        ctx.strokeStyle = '#28a745';
+        ctx.lineWidth = 3;
+        
+        calibrationData.court_detection.baseline_lines.forEach((line, index) => {
+            ctx.beginPath();
+            ctx.moveTo(line.x1, line.y1);
+            ctx.lineTo(line.x2, line.y2);
+            ctx.stroke();
+            
+            // Add label
+            ctx.fillStyle = '#28a745';
+            ctx.font = '12px Arial';
+            ctx.fillText(`Baseline ${index + 1}`, line.x1, line.y1 - 5);
+        });
+    }
+    
+    // Draw sideline lines (blue)
+    if (calibrationData.court_detection && calibrationData.court_detection.sideline_lines) {
+        ctx.strokeStyle = '#17a2b8';
+        ctx.lineWidth = 3;
+        
+        calibrationData.court_detection.sideline_lines.forEach((line, index) => {
+            ctx.beginPath();
+            ctx.moveTo(line.x1, line.y1);
+            ctx.lineTo(line.x2, line.y2);
+            ctx.stroke();
+            
+            // Add label
+            ctx.fillStyle = '#17a2b8';
+            ctx.font = '12px Arial';
+            ctx.fillText(`Sideline ${index + 1}`, line.x1, line.y1 - 5);
+        });
+    }
+    
+    // Draw center line (orange)
+    if (calibrationData.court_detection && calibrationData.court_detection.center_line) {
+        const line = calibrationData.court_detection.center_line;
+        ctx.strokeStyle = '#fd7e14';
+        ctx.lineWidth = 3;
+        
+        ctx.beginPath();
+        ctx.moveTo(line.x1, line.y1);
+        ctx.lineTo(line.x2, line.y2);
+        ctx.stroke();
+        
+        // Add label
+        ctx.fillStyle = '#fd7e14';
+        ctx.font = '12px Arial';
+        ctx.fillText('Center', line.x1, line.y1 - 5);
+    }
+}
+
+function drawPlayers() {
+    const ctx = canvasContexts['playerCanvas'];
+    const canvas = document.getElementById('playerCanvas');
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw court lines first (for reference)
+    drawCourtLines();
+    
+    // Draw players
+    if (calibrationData.player_detection && calibrationData.player_detection.players) {
+        calibrationData.player_detection.players.forEach((player, index) => {
+            const team = player.suggested_team;
+            ctx.strokeStyle = team === 'team_1' ? '#007bff' : '#28a745';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(player.x1, player.y1, player.x2 - player.x1, player.y2 - player.y1);
+            
+            // Draw player number and team
+            ctx.fillStyle = team === 'team_1' ? '#007bff' : '#28a745';
+            ctx.font = '14px Arial';
+            ctx.fillText(`P${index + 1} (${team})`, player.x1, player.y1 - 5);
+        });
+    }
+    
+    // Draw equipment
+    if (calibrationData.player_detection && calibrationData.player_detection.equipment) {
+        calibrationData.player_detection.equipment.forEach((item, index) => {
+            ctx.strokeStyle = '#6f42c1';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(item.x1, item.y1, item.x2 - item.x1, item.y2 - item.y1);
+            
+            // Draw equipment label
+            ctx.fillStyle = '#6f42c1';
+            ctx.font = '12px Arial';
+            ctx.fillText(`${item.type} ${index + 1}`, item.x1, item.y1 - 5);
+        });
+    }
+}
+
+function drawFinalPreview() {
+    const ctx = canvasContexts['finalCanvas'];
+    const canvas = document.getElementById('finalCanvas');
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw everything with final team assignments
+    drawCourtLines();
+    
+    // Draw players with final team assignments
+    if (calibrationData.player_detection && calibrationData.player_detection.players) {
+        calibrationData.player_detection.players.forEach((player, index) => {
+            const team = player.suggested_team;
+            ctx.strokeStyle = team === 'team_1' ? '#007bff' : '#28a745';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(player.x1, player.y1, player.x2 - player.x1, player.y2 - player.y1);
+            
+            // Draw player number and team
+            ctx.fillStyle = team === 'team_1' ? '#007bff' : '#28a745';
+            ctx.font = '16px Arial';
+            ctx.fillText(`P${index + 1} (${team})`, player.x1, player.y1 - 5);
+        });
+    }
+    
+    // Draw equipment
+    if (calibrationData.player_detection && calibrationData.player_detection.equipment) {
+        calibrationData.player_detection.equipment.forEach((item, index) => {
+            ctx.strokeStyle = '#6f42c1';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(item.x1, item.y1, item.x2 - item.x1, item.y2 - item.y1);
+            
+            // Draw equipment label
+            ctx.fillStyle = '#6f42c1';
+            ctx.font = '12px Arial';
+            ctx.fillText(`${item.type} ${index + 1}`, item.x1, item.y1 - 5);
+        });
+    }
+}
+
+function populateTeamPlayers() {
+    const team1Container = document.getElementById('team1Players');
+    const team2Container = document.getElementById('team2Players');
+    
+    team1Container.innerHTML = '';
+    team2Container.innerHTML = '';
+    
+    if (calibrationData.player_detection && calibrationData.player_detection.players) {
+        calibrationData.player_detection.players.forEach((player, index) => {
+            const playerItem = document.createElement('div');
+            playerItem.className = 'player-item';
+            playerItem.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Player ${index + 1}</span>
+                    <select class="form-select form-select-sm" style="width: auto;" onchange="assignTeam(${index}, this.value)">
+                        <option value="team_1" ${player.suggested_team === 'team_1' ? 'selected' : ''}>Team 1</option>
+                        <option value="team_2" ${player.suggested_team === 'team_2' ? 'selected' : ''}>Team 2</option>
+                    </select>
+                </div>
+            `;
+            
+            if (player.suggested_team === 'team_1') {
+                team1Container.appendChild(playerItem.cloneNode(true));
+            } else {
+                team2Container.appendChild(playerItem.cloneNode(true));
+            }
+        });
+    }
+}
+
+function assignTeam(playerIndex, team) {
+    if (calibrationData.player_detection && calibrationData.player_detection.players[playerIndex]) {
+        calibrationData.player_detection.players[playerIndex].suggested_team = team;
+        populateTeamPlayers();
+    }
+}
+
+function addKitchenLine() {
+    if (!calibrationData.court_detection) {
+        calibrationData.court_detection = { kitchen_lines: [] };
+    }
+    
+    calibrationData.court_detection.kitchen_lines.push({
+        x1: 100, y1: 200, x2: 300, y2: 200, type: 'kitchen'
+    });
+    
+    populateStep1();
+}
+
+function removeKitchenLine(index) {
+    if (calibrationData.court_detection && calibrationData.court_detection.kitchen_lines) {
+        calibrationData.court_detection.kitchen_lines.splice(index, 1);
+        populateStep1();
+    }
+}
+
+function removeBaselineLine(index) {
+    if (calibrationData.court_detection && calibrationData.court_detection.baseline_lines) {
+        calibrationData.court_detection.baseline_lines.splice(index, 1);
+        populateStep1();
+    }
+}
+
+function removeSidelineLine(index) {
+    if (calibrationData.court_detection && calibrationData.court_detection.sideline_lines) {
+        calibrationData.court_detection.sideline_lines.splice(index, 1);
+        populateStep1();
+    }
+}
+
+function removeCenterLine() {
+    if (calibrationData.court_detection) {
+        calibrationData.court_detection.center_line = null;
+        populateStep1();
+    }
+}
+
+function removePlayer(index) {
+    if (calibrationData.player_detection && calibrationData.player_detection.players) {
+        calibrationData.player_detection.players.splice(index, 1);
+        populateStep2();
+    }
+}
+
+function removeEquipment(index) {
+    if (calibrationData.player_detection && calibrationData.player_detection.equipment) {
+        calibrationData.player_detection.equipment.splice(index, 1);
+        populateStep2();
+    }
+}
+
+function addEquipment() {
+    if (!calibrationData.player_detection) {
+        calibrationData.player_detection = { equipment: [] };
+    }
+    if (!calibrationData.player_detection.equipment) {
+        calibrationData.player_detection.equipment = [];
+    }
+    
+    calibrationData.player_detection.equipment.push({
+        x1: 250, y1: 200, x2: 270, y2: 220,
+        confidence: 0.6,
+        type: 'paddle',
+        equipment_id: `equipment_${calibrationData.player_detection.equipment.length + 1}`
+    });
+    
+    populateStep2();
+}
+
+function addPlayer() {
+    if (!calibrationData.player_detection) {
+        calibrationData.player_detection = { players: [] };
+    }
+    if (!calibrationData.player_detection.players) {
+        calibrationData.player_detection.players = [];
+    }
+    
+    calibrationData.player_detection.players.push({
+        x1: 200, y1: 150, x2: 270, y2: 300,
+        confidence: 0.8,
+        suggested_team: 'team_1',
+        player_id: `player_${calibrationData.player_detection.players.length + 1}`,
+        position: 'unknown',
+        stance: 'unknown',
+        activity: 'unknown'
+    });
+    
+    populateStep2();
+}
+
+function saveCalibration() {
+    const adjustments = {
+        court_lines: {
+            kitchen_lines: calibrationData.court_detection?.kitchen_lines || [],
+            baseline_lines: calibrationData.court_detection?.baseline_lines || [],
+            sideline_lines: calibrationData.court_detection?.sideline_lines || [],
+            center_line: calibrationData.court_detection?.center_line || null
+        },
+        teams: calibrationData.player_detection?.players || [],
+        equipment: calibrationData.player_detection?.equipment || [],
+        video_analysis: calibrationData.video_analysis || {},
+        ai_confidence: calibrationData.ai_confidence || {},
+        completed_at: new Date().toISOString()
+    };
+    
+    fetch(`/api/videos/${currentVideoId}/calibration`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            adjustments: adjustments
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const corrections = data.corrections_made || 0;
+            alert(`Calibration saved successfully! ${corrections} corrections were made and AI learning has been applied.`);
+            bootstrap.Modal.getInstance(document.getElementById('calibrationModal')).hide();
+            location.reload(); // Refresh to show updated status
+        } else {
+            alert('Error saving calibration: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error saving calibration');
+    });
+}
+
+// Global variable to track current video
+let currentVideoId = null;
+
+// Function to open calibration modal
+function openCalibrationModal(videoId) {
+    currentVideoId = videoId;
+    const modal = new bootstrap.Modal(document.getElementById('calibrationModal'));
+    modal.show();
+    initCalibrationModal(videoId);
+}
+</script> 

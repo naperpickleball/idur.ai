@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PickleballAI Root Console - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            margin: 0.25rem 0;
+        }
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .main-content {
+            padding: 2rem;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+        .stats-card i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .stats-card.coaches i { color: #667eea; }
+        .stats-card.users i { color: #28a745; }
+        .stats-card.storage i { color: #ffc107; }
+        .stats-card.revenue i { color: #dc3545; }
+        
+        /* Step indicators */
+        .step-indicators {
+            margin-bottom: 2rem;
+        }
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin: 0 auto 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .step-circle.active {
+            background-color: #667eea;
+            color: white;
+        }
+        .step-circle.completed {
+            background-color: #28a745;
+            color: white;
+        }
+        .step-content {
+            min-height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar p-3">
+                <div class="text-center mb-4">
+                    <i class="fas fa-shield-alt fa-2x mb-2"></i>
+                    <h5>Root Console</h5>
+                </div>
+                
+                <nav class="nav flex-column">
+                    <a class="nav-link active" href="#" onclick="showSection('dashboard')">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <a class="nav-link" href="#" onclick="showSection('coaches')">
+                        <i class="fas fa-user-tie"></i> Coaches
+                    </a>
+                    <a class="nav-link" href="#" onclick="showSection('users')">
+                        <i class="fas fa-users"></i> Users
+                    </a>
+                    <a class="nav-link" href="#" onclick="showSection('storage')">
+                        <i class="fas fa-database"></i> Storage
+                    </a>
+                    <a class="nav-link" href="#" onclick="showSection('passwords')">
+                        <i class="fas fa-key"></i> Default Passwords
+                    </a>
+                    <a class="nav-link" href="#" onclick="showSection('logs')">
+                        <i class="fas fa-file-alt"></i> Logs
+                    </a>
+                    <a class="nav-link" href="#" onclick="showSection('reports')">
+                        <i class="fas fa-chart-bar"></i> Reports
+                    </a>
+                </nav>
+                
+                <div class="mt-auto pt-3">
+                    <a href="/logout" class="btn btn-outline-light btn-sm w-100">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <!-- Dashboard Section -->
+                <div id="dashboard-section">
+                    <h2 class="mb-4">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard Overview
+                    </h2>
+                    
+                    <!-- Stats Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="stats-card coaches">
+                                <i class="fas fa-user-tie"></i>
+                                <h3 id="coaches-count">0</h3>
+                                <p class="text-muted">Active Coaches</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card users">
+                                <i class="fas fa-users"></i>
+                                <h3 id="users-count">0</h3>
+                                <p class="text-muted">Active Users</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card storage">
+                                <i class="fas fa-database"></i>
+                                <h3 id="storage-count">0</h3>
+                                <p class="text-muted">Storage Buckets</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card revenue">
+                                <i class="fas fa-dollar-sign"></i>
+                                <h3 id="revenue-today">$0</h3>
+                                <p class="text-muted">Today's Revenue</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-clock"></i> Recent Activity</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="recent-activity">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Coaches Section -->
+                <div id="coaches-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-user-tie"></i> Coach Management</h2>
+                        <button class="btn btn-primary" onclick="showCreateCoachModal()">
+                            <i class="fas fa-plus"></i> Add Coach
+                        </button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Coaches List</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="coaches-list">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Users Section -->
+                <div id="users-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-users"></i> User Management</h2>
+                        <button class="btn btn-primary" onclick="showCreateUserModal()">
+                            <i class="fas fa-plus"></i> Add User
+                        </button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Users List</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="users-list">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Storage Section -->
+                <div id="storage-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-database"></i> Storage Management</h2>
+                        <button class="btn btn-primary" onclick="showCreateStorageModal()">
+                            <i class="fas fa-plus"></i> Add Bucket
+                        </button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Storage Buckets</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="storage-list">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Default Passwords Section -->
+                <div id="passwords-section" style="display: none;">
+                    <h2 class="mb-4"><i class="fas fa-key"></i> Default Password Management</h2>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Coach Default Password</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Current Default Password:</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="coach-password" readonly>
+                                            <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('coach-password')">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">New Default Password:</label>
+                                        <input type="password" class="form-control" id="new-coach-password" placeholder="Enter new password">
+                                    </div>
+                                    <button class="btn btn-primary" onclick="updateDefaultPassword('coach')">
+                                        <i class="fas fa-save"></i> Update Coach Password
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Student Default Password</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Current Default Password:</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="student-password" readonly>
+                                            <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('student-password')">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">New Default Password:</label>
+                                        <input type="password" class="form-control" id="new-student-password" placeholder="Enter new password">
+                                    </div>
+                                    <button class="btn btn-primary" onclick="updateDefaultPassword('student')">
+                                        <i class="fas fa-save"></i> Update Student Password
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Password Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>Note:</strong> When you create new coaches or students from the root console, they will automatically be assigned these default passwords. 
+                                Users can change their passwords after their first login.
+                            </div>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>Security Reminder:</strong> Default passwords should be changed by users immediately after their first login. 
+                                Consider implementing a password change requirement on first login.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Logs Section -->
+                <div id="logs-section" style="display: none;">
+                    <h2 class="mb-4"><i class="fas fa-file-alt"></i> System Logs</h2>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Activity Logs</h5>
+                                <div>
+                                    <select class="form-select form-select-sm" id="logs-days">
+                                        <option value="1">Last 1 day</option>
+                                        <option value="7">Last 7 days</option>
+                                        <option value="30">Last 30 days</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="logs-content">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reports Section -->
+                <div id="reports-section" style="display: none;">
+                    <h2 class="mb-4"><i class="fas fa-chart-bar"></i> Daily Reports</h2>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Daily Activity Report</h5>
+                                <input type="date" class="form-control form-control-sm" id="report-date" style="width: auto;">
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="report-content">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Create Coach Modal -->
+    <div class="modal fade" id="createCoachModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Coach</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Step Indicators -->
+                    <div class="step-indicators mb-4">
+                        <div class="row text-center">
+                            <div class="col-3">
+                                <div class="step-circle active" id="coach-step-1">1</div>
+                                <small>Basic Info</small>
+                            </div>
+                            <div class="col-3">
+                                <div class="step-circle" id="coach-step-2">2</div>
+                                <small>Password</small>
+                            </div>
+                            <div class="col-3">
+                                <div class="step-circle" id="coach-step-3">3</div>
+                                <small>Profile</small>
+                            </div>
+                            <div class="col-3">
+                                <div class="step-circle" id="coach-step-4">4</div>
+                                <small>Review</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 1: Basic Information -->
+                    <div class="step-content" id="coach-step-content-1">
+                        <h6 class="mb-3">Basic Information</h6>
+                        <form id="coachBasicForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Email Address *</label>
+                                        <input type="email" class="form-control" name="email" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Full Name *</label>
+                                        <input type="text" class="form-control" name="name" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Step 2: Password Setup -->
+                    <div class="step-content" id="coach-step-content-2" style="display: none;">
+                        <h6 class="mb-3">Password Setup</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Password Type</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="coachPasswordType" id="coachDefaultPassword" value="default" checked>
+                                <label class="form-check-label" for="coachDefaultPassword">
+                                    Use Default Password: <span id="coachDefaultPasswordText" class="text-muted">coach123</span>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="coachPasswordType" id="coachCustomPassword" value="custom">
+                                <label class="form-check-label" for="coachCustomPassword">
+                                    Set Custom Password
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3" id="coachCustomPasswordField" style="display: none;">
+                            <label class="form-label">Custom Password</label>
+                            <input type="password" class="form-control" name="customPassword" minlength="6">
+                            <div class="form-text">Minimum 6 characters required</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Profile Details -->
+                    <div class="step-content" id="coach-step-content-3" style="display: none;">
+                        <h6 class="mb-3">Profile Details</h6>
+                        <form id="coachProfileForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Specialization *</label>
+                                        <select class="form-control" name="specialization" required>
+                                            <option value="">Select specialization</option>
+                                            <option value="Forehand">Forehand</option>
+                                            <option value="Backhand">Backhand</option>
+                                            <option value="Serves">Serves</option>
+                                            <option value="Volleys">Volleys</option>
+                                            <option value="Strategy">Strategy</option>
+                                            <option value="General">General</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Hourly Rate ($) *</label>
+                                        <input type="number" class="form-control" name="hourly_rate" step="0.01" min="0" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Bio (Optional)</label>
+                                <textarea class="form-control" name="bio" rows="3" placeholder="Tell us about your coaching experience..."></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Step 4: Review -->
+                    <div class="step-content" id="coach-step-content-4" style="display: none;">
+                        <h6 class="mb-3">Review Information</h6>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Email:</strong><br>
+                                        <span id="coach-review-email"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Name:</strong><br>
+                                        <span id="coach-review-name"></span>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Password:</strong><br>
+                                        <span id="coach-review-password"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Specialization:</strong><br>
+                                        <span id="coach-review-specialization"></span>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Hourly Rate:</strong><br>
+                                        <span id="coach-review-rate"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Bio:</strong><br>
+                                        <span id="coach-review-bio"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="coachPrevBtn" style="display: none;" onclick="coachPrevStep()">Previous</button>
+                    <button type="button" class="btn btn-primary" id="coachNextBtn" onclick="coachNextStep()">Next</button>
+                    <button type="button" class="btn btn-success" id="coachCreateBtn" style="display: none;" onclick="createCoach()">Create Coach</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Create User Modal -->
+    <div class="modal fade" id="createUserModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Step Indicators -->
+                    <div class="step-indicators mb-4">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="step-circle active" id="user-step-1">1</div>
+                                <small>Basic Info</small>
+                            </div>
+                            <div class="col-4">
+                                <div class="step-circle" id="user-step-2">2</div>
+                                <small>Password</small>
+                            </div>
+                            <div class="col-4">
+                                <div class="step-circle" id="user-step-3">3</div>
+                                <small>Review</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 1: Basic Information -->
+                    <div class="step-content" id="user-step-content-1">
+                        <h6 class="mb-3">Basic Information</h6>
+                        <form id="userBasicForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Email Address *</label>
+                                        <input type="email" class="form-control" name="email" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Full Name *</label>
+                                        <input type="text" class="form-control" name="name" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Role *</label>
+                                <select class="form-control" name="role" required>
+                                    <option value="student">Student</option>
+                                    <option value="coach">Coach</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Step 2: Password Setup -->
+                    <div class="step-content" id="user-step-content-2" style="display: none;">
+                        <h6 class="mb-3">Password Setup</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Password Type</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="userPasswordType" id="userDefaultPassword" value="default" checked>
+                                <label class="form-check-label" for="userDefaultPassword">
+                                    Use Default Password: <span id="userDefaultPasswordText" class="text-muted">student123</span>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="userPasswordType" id="userCustomPassword" value="custom">
+                                <label class="form-check-label" for="userCustomPassword">
+                                    Set Custom Password
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3" id="userCustomPasswordField" style="display: none;">
+                            <label class="form-label">Custom Password</label>
+                            <input type="password" class="form-control" name="customPassword" minlength="6">
+                            <div class="form-text">Minimum 6 characters required</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Review -->
+                    <div class="step-content" id="user-step-content-3" style="display: none;">
+                        <h6 class="mb-3">Review Information</h6>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Email:</strong><br>
+                                        <span id="user-review-email"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Name:</strong><br>
+                                        <span id="user-review-name"></span>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Role:</strong><br>
+                                        <span id="user-review-role"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Password:</strong><br>
+                                        <span id="user-review-password"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="userPrevBtn" style="display: none;" onclick="userPrevStep()">Previous</button>
+                    <button type="button" class="btn btn-primary" id="userNextBtn" onclick="userNextStep()">Next</button>
+                    <button type="button" class="btn btn-success" id="userCreateBtn" style="display: none;" onclick="createUser()">Create User</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Change Password Modal -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Change Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="changePasswordForm">
+                        <input type="hidden" id="changePasswordEmail">
+                        <input type="hidden" id="changePasswordType">
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="newPassword" minlength="6" required>
+                            <div class="form-text">Minimum 6 characters required</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="confirmPassword" minlength="6" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="updatePassword()">Update Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Deletion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete <strong id="deleteItemName"></strong>?</p>
+                    <p class="text-danger">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Create Storage Modal -->
+    <div class="modal fade" id="createStorageModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Storage Bucket</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createStorageForm">
+                        <div class="mb-3">
+                            <label class="form-label">Bucket Name</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Purpose</label>
+                            <input type="text" class="form-control" name="purpose" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Size (GB)</label>
+                            <input type="number" class="form-control" name="size_gb" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createStorage()">Create Bucket</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html> 

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Videos - PickleballAI Coach Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .video-card {
+            transition: transform 0.2s;
+            border-left: 4px solid #007bff;
+        }
+        .video-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .permission-badge {
+            font-size: 0.7em;
+            margin: 1px;
+        }
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="fas fa-table-tennis"></i> PickleballAI Coach
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/dashboard">Dashboard</a>
+                <a class="nav-link active" href="/videos">Videos</a>
+                <a class="nav-link" href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h2><i class="fas fa-video"></i> My Videos</h2>
+                <p class="text-muted">Videos you have access to for analysis and annotation</p>
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <h4>{{ videos|length }}</h4>
+                        <small>Total Videos</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <h4>{{ videos|selectattr('annotations')|list|length }}</h4>
+                        <small>With Annotations</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <h4>{{ videos|selectattr('analysis_status', 'equalto', 'completed')|list|length }}</h4>
+                        <small>Analyzed</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <h4>{{ videos|selectattr('analysis_status', 'equalto', 'pending')|list|length }}</h4>
+                        <small>Pending Analysis</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="statusFilter" class="form-label">Status</label>
+                                <select class="form-select" id="statusFilter">
+                                    <option value="">All Statuses</option>
+                                    <option value="uploaded">Uploaded</option>
+                                    <option value="analyzing">Analyzing</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="analysisFilter" class="form-label">Analysis</label>
+                                <select class="form-select" id="analysisFilter">
+                                    <option value="">All</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="studentFilter" class="form-label">Student</label>
+                                <input type="text" class="form-control" id="studentFilter" placeholder="Filter by student">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">&nbsp;</label>
+                                <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                                    <i class="fas fa-times"></i> Clear Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Videos Grid -->
+        <div class="row" id="videosGrid">
+            {% for video in videos %}
+            <div class="col-lg-4 col-md-6 mb-4 video-item" 
+                 data-status="{{ video.status }}" 
+                 data-analysis="{{ video.analysis_status }}"
+                 data-student="{{ video.student_email }}">
+                <div class="card video-card h-100">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h6 class="card-title mb-0">{{ video.filename }}</h6>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="/video/{{ video.id }}">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </a></li>
+                                    {% if 'edit' in video.user_permissions %}
+                                    <li><a class="dropdown-item" href="/video/{{ video.id }}#annotations">
+                                        <i class="fas fa-sticky-note"></i> Add Annotation
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="runAnalysis('{{ video.id }}')">
+                                        <i class="fas fa-play"></i> Run Analysis
+                                    </a></li>
+                                    {% endif %}
+                                    <li><a class="dropdown-item" href="#" onclick="exportVideo('{{ video.id }}')">
+                                        <i class="fas fa-download"></i> Export Data
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Permissions -->
+                        <div class="mb-2">
+                            {% for permission in video.user_permissions %}
+                                {% if permission == 'read' %}
+                                <span class="badge bg-success permission-badge">
+                                    <i class="fas fa-eye"></i> Read
+                                </span>
+                                {% elif permission == 'edit' %}
+                                <span class="badge bg-primary permission-badge">
+                                    <i class="fas fa-edit"></i> Edit
+                                </span>
+                                {% endif %}
+                            {% endfor %}
+                            <span class="badge bg-secondary permission-badge">
+                                <i class="fas fa-trash"></i> No Delete
+                            </span>
+                        </div>
+
+                        <!-- Video Info -->
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-user"></i> {{ video.student_email }}
+                            </small>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar"></i> {{ video.uploaded_at[:10] }}
+                            </small>
+                        </div>
+                        {% if video.size_bytes %}
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-file"></i> {{ video.size_bytes|filesizeformat }}
+                            </small>
+                        </div>
+                        {% endif %}
+
+                        <!-- Status Badges -->
+                        <div class="mb-2">
+                            <span class="badge bg-{{ 'success' if video.status == 'uploaded' else 'warning' }}">
+                                {{ video.status }}
+                            </span>
+                            <span class="badge bg-{{ 'success' if video.analysis_status == 'completed' else 'secondary' }}">
+                                Analysis: {{ video.analysis_status }}
+                            </span>
+                        </div>
+
+                        <!-- Annotations Count -->
+                        {% if video.annotations %}
+                        <div class="mb-2">
+                            <span class="badge bg-info">
+                                <i class="fas fa-sticky-note"></i> {{ video.annotations|length }} annotations
+                            </span>
+                        </div>
+                        {% endif %}
+
+                        <!-- Last Activity -->
+                        {% if video.last_annotated_at %}
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-clock"></i> Last annotated: {{ video.last_annotated_at[:10] }}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer">
+                        <a href="/video/{{ video.id }}" class="btn btn-primary btn-sm w-100">
+                            <i class="fas fa-eye"></i> View Video
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Empty State -->
+        {% if not videos %}
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-video fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Videos Available</h4>
+                    <p class="text-muted">You don't have access to any videos yet. Students will need to submit annotation requests to you first.</p>
+                    <a href="/dashboard" class="btn btn-primary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Filter functionality
+        function filterVideos() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const analysisFilter = document.getElementById('analysisFilter').value;
+            const studentFilter = document.getElementById('studentFilter').value.toLowerCase();
+
+            const videoItems = document.querySelectorAll('.video-item');
+
+            videoItems.forEach(item => {
+                const status = item.dataset.status;
+                const analysis = item.dataset.analysis;
+                const student = item.dataset.student.toLowerCase();
+
+                const statusMatch = !statusFilter || status === statusFilter;
+                const analysisMatch = !analysisFilter || analysis === analysisFilter;
+                const studentMatch = !studentFilter || student.includes(studentFilter);
+
+                if (statusMatch && analysisMatch && studentMatch) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('analysisFilter').value = '';
+            document.getElementById('studentFilter').value = '';
+            filterVideos();
+        }
+
+        function runAnalysis(videoId) {
+            if (confirm('Run analysis on this video?')) {
+                // Mock analysis - in real implementation, this would call the API
+                alert('Analysis started for video ' + videoId + '. This is a demo - no actual analysis will be performed.');
+            }
+        }
+
+        function exportVideo(videoId) {
+            // Mock export - in real implementation, this would call the API
+            alert('Exporting video data for ' + videoId + '. This is a demo - no actual export will be performed.');
+        }
+
+        // Add event listeners
+        document.getElementById('statusFilter').addEventListener('change', filterVideos);
+        document.getElementById('analysisFilter').addEventListener('change', filterVideos);
+        document.getElementById('studentFilter').addEventListener('input', filterVideos);
+    </script>
+</body>
+</html> 
